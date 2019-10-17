@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+##
+# Combines MP3 files and adds artwork
+##
+
+# Create a list of files to concatenate.
+# @see https://trac.ffmpeg.org/wiki/Concatenate
+getFileList() {
+	ls *.mp3 | while read filename; do
+		echo "file '${filename}'"
+	done
+}
+
+# Concatenate MP3 files and add artwork
+concatMP3Files() {
+	ffmpeg \
+	  -protocol_whitelist file,pipe \
+	  -f concat \
+	  -safe 0 \
+	  -i - \
+	  -i folder.jpg \
+	  -map 0:0 \
+	  -map 1:0 \
+	  -c:a copy \
+	  -c:v copy \
+	  -id3v2_version 3 \
+	  -metadata:s:v title="Album cover" \
+	  -metadata:s:v comment="Cover (front)" \
+	  output.mp3
+}
+
+main() {	
+	getFileList | concatMP3Files
+}
+
+main "$@"
